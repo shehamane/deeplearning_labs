@@ -25,6 +25,15 @@ private:
         return true;
     }
 
+    static T scalarProduct(std::vector<T> left, std::vector<T> right) {
+        if (left.size() != right.size())
+            throw std::invalid_argument("");
+        T sum = 0;
+        for (int i = 0; i < left.size(); ++i)
+            sum += left[i] * right[i];
+        return sum;
+    }
+
 public:
     explicit Tensor2D(std::vector<std::vector<T>> data) {
         if (!isMatrix(data))
@@ -32,11 +41,6 @@ public:
 
         this->data = data;
         this->shape = std::pair<unsigned int, unsigned int>(data.size(), data[0].size());
-    }
-
-    Tensor2D(const Tensor2D<T> &other) {
-        this->shape = other.shape;
-        this->data = other.data;
     }
 
     static Tensor2D zeros(unsigned int rows, unsigned int cols) {
@@ -55,11 +59,11 @@ public:
     }
 
     std::vector<T> getRow(unsigned int index) {
-        return new std::vector<T>(this->data[index]);
+        return std::vector<T>(this->data[index]);
     }
 
     std::vector<T> getCol(unsigned int index) {
-        std::vector<T> res = new std::vector<T>(this->shape.first);
+        std::vector<T> res(this->shape.first);
         for (int i = 0; i < this->shape.first; ++i)
             res[i] = this->data[i][index];
         return res;
@@ -67,25 +71,25 @@ public:
 
 
     Tensor2D<T> map(T (*func)(T x)) {
-        Tensor2D<T> res = new Tensor2D<T>(this);
+        Tensor2D<T> res(*this);
         int rows = res.shape.first;
         int cols = res.shape.second;
 
         for (int i = 0; i < rows; ++i)
             for (int j = 0; j < cols; ++j)
-                res.data[i][j] = func(res.data[i][j]);
+                res[i][j] = func(res[i][j]);
 
         return res;
     }
 
     Tensor2D<T> scale(T multiplier) {
-        Tensor2D<T> res = new Tensor2D<T>(this);
+        Tensor2D<T> res(*this);
         int rows = res.shape.first;
         int cols = res.shape.second;
 
         for (int i = 0; i < rows; ++i)
             for (int j = 0; j < cols; ++j)
-                res.data[i][j] *= multiplier;
+                res[i][j] *= multiplier;
 
         return res;
     }
@@ -94,16 +98,17 @@ public:
         if (this->shape != other.shape)
             throw std::invalid_argument("shapes of the matrices are incompatible");
 
-        Tensor2D<T> res = new Tensor2D(this);
+        Tensor2D<T> res(*this);
         int rows = res.shape.first;
         int cols = res.shape.second;
 
         for (int i = 0; i < rows; ++i)
             for (int j = 0; j < cols; ++j)
-                res.data[i][j] += other.data[i][j];
+                res[i][j] += other[i][j];
 
         return res;
     }
+
 
     Tensor2D<T> matmul(Tensor2D<T> other) {
         if (this->shape.second != other.shape.first)
@@ -117,12 +122,27 @@ public:
             std::vector<T> row = this->getRow(i);
             for (int j = 0; j < cols; ++j) {
                 std::vector<T> col = other.getCol(j);
-                res.data[i][j] = scalarProduct(row, col);
+                res[i][j] = scalarProduct(row, col);
             }
         }
         return res;
     }
-};
 
+    Tensor2D<T> transpose() {
+        Tensor2D<T> res = Tensor2D<T>::empty(this->shape.second, this->shape.first);
+        for (int i = 0; i < this->shape.first; ++i)
+            for (int j = 0; j < this->shape.second; ++j)
+                res[j][i] = this[i][j];
+        return res;
+    }
+
+    std::vector<T> &operator[](int idx) {
+        return this->data[idx];
+    }
+
+    std::vector<T> operator[](int idx) const {
+        return this->data[idx];
+    }
+};
 
 #endif //LAB1_TENSOR_H
