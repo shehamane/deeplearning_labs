@@ -137,6 +137,21 @@ public:
         return res;
     }
 
+    Tensor2D<T> multiply(Tensor2D<T> other) {
+        if (this->shape != other.shape)
+            throw std::invalid_argument("shapes of the matrices are incompatible");
+        Tensor2D<T> res = Tensor2D<T>::empty(this->shape.first, this->shape.second);
+
+        int rows = res.shape.first;
+        int cols = res.shape.second;
+
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                res[i][j] = this->data[i][j] * other[i][j];
+
+        return res;
+    }
+
     Tensor2D<T> matmul(Tensor2D<T> other) {
         if (this->shape.second != other.shape.first)
             throw std::invalid_argument("shapes of the matrices are incompatible");
@@ -176,8 +191,7 @@ public:
                 for (int j = 0; j < this->shape.second; ++j)
                     res.data[i][0] += this->data[i][j];
             return res;
-        }
-        else throw std::invalid_argument("invalid dimenstion");
+        } else throw std::invalid_argument("invalid dimenstion");
     }
 
     Tensor2D<T> operator-(Tensor2D<T> other) {

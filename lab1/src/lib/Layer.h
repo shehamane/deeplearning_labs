@@ -53,7 +53,7 @@ T tanh_templated(T x) {
 
 template<typename T>
 T tanh2_templated(T x){
-    return tanh_templated(x)* tanh_templated(x);
+    return static_cast<T>(tanh(x)*tanh(x));
 }
 
 template<typename T>
@@ -66,7 +66,7 @@ public:
     }
 
     Tensor2D<T> backward(Tensor2D<T> interimData, Tensor2D<T> prevGrad) override {
-        return Tensor2D<T>::ones(interimData.getShape().first, interimData.getShape().second) - interimData.map(&tanh2_templated);
+        return prevGrad.multiply(Tensor2D<T>::ones(interimData.getShape().first, interimData.getShape().second) - interimData.map(&tanh2_templated));
     }
 
     void makeStep(double step) override{return;};

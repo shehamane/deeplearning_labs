@@ -53,7 +53,7 @@ public:
 
     void optimize() {
         for (auto layer: this->layersOptim)
-            layer->makeStep(0.005);
+            layer->makeStep(0.01);
     }
 
     unsigned int makeChoice(std::vector<T> probas) {

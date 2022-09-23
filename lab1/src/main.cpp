@@ -20,12 +20,16 @@ int main() {
     auto labels = train.second;
 
     NeuralNetwork<float> nn(new CrossEntropyLoss<float>(), new SoftMaxLayer<float>());
-    nn.addLayer(new FCLayer<float>(24, 16), true);
+    nn.addLayer(new FCLayer<float>(24, 20), true);
     nn.addLayer(new TanhLayer<float>());
-    nn.addLayer(new FCLayer<float>(16, 10), true);
+    nn.addLayer(new FCLayer<float>(20, 16), true);
+    nn.addLayer(new TanhLayer<float>());
+    nn.addLayer(new FCLayer<float>(16, 13), true);
+    nn.addLayer(new TanhLayer<float>());
+    nn.addLayer(new FCLayer<float>(13, 10), true);
 
 
-    for (unsigned int epoch = 0; epoch < 1000; ++epoch) {
+    for (unsigned int epoch = 0; epoch < 700; ++epoch) {
         Tensor2D<float> probas = nn.forward(data);
 
         std::vector<unsigned int> predictions = nn.makeChoices(probas);
