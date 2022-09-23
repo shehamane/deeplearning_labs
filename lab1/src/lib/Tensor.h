@@ -3,8 +3,9 @@
 
 #include <vector>
 #include <stdexcept>
+#include <random>
 
-template<typename T>
+template<typename T = double>
 class Tensor2D {
 private:
     std::vector<std::vector<T>> data;
@@ -35,6 +36,11 @@ private:
     }
 
 public:
+    Tensor2D() {
+        this->data = std::vector<std::vector<T>>(0);
+        this->shape = std::pair<unsigned int, unsigned int>(0, 0);
+    }
+
     explicit Tensor2D(std::vector<std::vector<T>> data) {
         if (!isMatrix(data))
             throw std::invalid_argument("received data is not a matrix");
@@ -56,6 +62,18 @@ public:
     static Tensor2D empty(unsigned int rows, unsigned int cols) {
         std::vector<std::vector<T>> data(rows, std::vector<T>(cols));
         return Tensor2D<T>(data);
+    }
+
+    static Tensor2D random(unsigned int rows, unsigned int cols, double min, double max) {
+        std::random_device seeder;
+        std::mt19937 engine(seeder());
+        std::uniform_real_distribution<double> dist(min, max);
+
+        Tensor2D<T> res = empty(rows, cols);
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                res[i][j] = dist(engine);
+        return res;
     }
 
     std::vector<T> getRow(unsigned int index) {
@@ -95,8 +113,18 @@ public:
     }
 
     Tensor2D<T> add(Tensor2D<T> other) {
-        if (this->shape != other.shape)
+        if (other.shape.first == 1 && other.shape.second == this->shape.second) {
+            Tensor2D<T> res(*this);
+            int rows = res.shape.first;
+            int cols = res.shape.second;
+
+            for (int i = 0; i < rows; ++i)
+                for (int j = 0; j < cols; ++j)
+                    res[i][j] += other[0][j];
+            return res;
+        } else if (this->shape != other.shape)
             throw std::invalid_argument("shapes of the matrices are incompatible");
+
 
         Tensor2D<T> res(*this);
         int rows = res.shape.first;
@@ -108,7 +136,6 @@ public:
 
         return res;
     }
-
 
     Tensor2D<T> matmul(Tensor2D<T> other) {
         if (this->shape.second != other.shape.first)
@@ -132,7 +159,35 @@ public:
         Tensor2D<T> res = Tensor2D<T>::empty(this->shape.second, this->shape.first);
         for (int i = 0; i < this->shape.first; ++i)
             for (int j = 0; j < this->shape.second; ++j)
-                res[j][i] = this[i][j];
+                res[j][i] = this->data[i][j];
+        return res;
+    }
+
+    Tensor2D<T> sumByDimension(unsigned int dim = 0) {
+        if (dim == 0) {
+            Tensor2D<T> res = Tensor2D<T>::zeros(1, this->shape.second);
+            for (int i = 0; i < this->shape.first; ++i)
+                for (int j = 0; j < this->shape.second; ++j)
+                    res.data[0][j] += this->data[i][j];
+            return res;
+        } else if (dim == 1) {
+            Tensor2D<T> res = Tensor2D<T>::zeros(this->shape.first, 1);
+            for (int i = 0; i < this->shape.first; ++i)
+                for (int j = 0; j < this->shape.second; ++j)
+                    res.data[i][0] += this->data[i][j];
+            return res;
+        }
+    }
+
+    Tensor2D<T> operator-(Tensor2D<T> other) {
+        if (this->shape != other.shape)
+            throw std::invalid_argument("sizes are incompatible");
+
+        Tensor2D<T> res(*this);
+        for (int i = 0; i < this->shape.first; ++i)
+            for (int j = 0; j < this->shape.second; ++j)
+                res[i][j] -= other[i][j];
+
         return res;
     }
 
@@ -142,6 +197,10 @@ public:
 
     std::vector<T> operator[](int idx) const {
         return this->data[idx];
+    }
+
+    std::pair<unsigned int, unsigned int> getShape() {
+        return this->shape;
     }
 };
 
