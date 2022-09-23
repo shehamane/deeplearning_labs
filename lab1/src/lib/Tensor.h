@@ -177,6 +177,7 @@ public:
                     res.data[i][0] += this->data[i][j];
             return res;
         }
+        else throw std::invalid_argument("invalid dimenstion");
     }
 
     Tensor2D<T> operator-(Tensor2D<T> other) {

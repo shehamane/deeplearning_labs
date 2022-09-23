@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCE_EXE src/main.cpp)
 set(SOURCE_LIB
-        src/lib/Tensor.h src/lib/Tensor.cpp)
+        src/lib/Tensor.cpp src/lib/NeuralNetwork.cpp src/lib/Layer.cpp src/lib/DataSet.cpp)
 
 add_library(LIB STATIC ${SOURCE_LIB})
 add_executable(lab1 ${SOURCE_EXE})
