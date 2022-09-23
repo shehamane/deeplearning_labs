@@ -10,6 +10,8 @@ public:
     virtual Tensor2D<T> forward(Tensor2D<T> data) = 0;
 
     virtual Tensor2D<T> backward(Tensor2D<T> data, Tensor2D<T> prevGrad) = 0;
+
+    virtual void makeStep(double step) = 0;
 };
 
 template<typename T>
@@ -38,6 +40,10 @@ public:
         this->biasesGrads = prevGrad.sumByDimension(0);
         return prevGrad.matmul(this->weights.transpose());
     }
+
+    void makeStep(double step) override {
+        this->weights = this->weights - this->weightsGrads.scale(step);
+    }
 };
 
 template<typename T>
@@ -62,6 +68,8 @@ public:
     Tensor2D<T> backward(Tensor2D<T> interimData, Tensor2D<T> prevGrad) override {
         return Tensor2D<T>::ones(interimData.getShape().first, interimData.getShape().second) - interimData.map(&tanh2_templated);
     }
+
+    void makeStep(double step) override{return;};
 };
 
 template<typename T>
@@ -92,6 +100,8 @@ public:
     Tensor2D<T> backward(Tensor2D<T> interimData, Tensor2D<T> prevGrad) override {
         return prevGrad;
     }
+
+    void makeStep(double step) override{return;};
 };
 
 template<typename T>
